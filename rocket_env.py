@@ -1,6 +1,7 @@
 '''
  # @ Author: Zion Deng
  # @ Description: simulation using matplotlib
+ For the Rocket here, we use position and angle only for plot.
  '''
 
 from matplotlib import pyplot as plt
@@ -16,11 +17,12 @@ class RocketPlt():
         self.SIZE = np.array([0.4,1])
         self.BODY_LENGTH = 0.4 
         self.WING_LENGTH = 0.2
-        self.position = np.array([2,2.2])
         self.body_angle = 0  # the angle of the body 
         self.wing_angle = 0 # the angle of the wing
+        self.position = np.array([2,2])
         self.main_engine_on = False 
         self.full_engine_on = False
+        self.visited = []  # list of visited positions 
 
     def render_rocket(self):
         bottom_point = self.position
@@ -84,8 +86,8 @@ plt.ion()
 fig, ax = plt.subplots() 
 land_point = np.array([0.0, 0.0])  # the bottom left position of land
 sea_point = np.array([4.0, 0.0])   # the bottom left position of sea
-land_pad_point = np.array([2,2])
-sea_pad_point = np.array([7,2])
+land_pad_point = np.array([2,1.8])
+sea_pad_point = np.array([7,1.8])
 rocket = RocketPlt()
 
 def simulation2D():
