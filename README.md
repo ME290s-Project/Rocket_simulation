@@ -1,3 +1,12 @@
 # FOR BERKELEY ME 290S 
 
-# Try Matplotlib simulation
+# Matplotlib simulation
+* run rocket_env 
+* animation will be shown 
+
+# MPC solution 
+* run MPCsolution 
+* results will be plotted 
+
+# other MPC examples 
+see MPCexample folder

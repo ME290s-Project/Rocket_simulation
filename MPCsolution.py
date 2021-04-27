@@ -13,8 +13,11 @@ import numpy as np
 import pyomo.environ as pyo 
 import matplotlib.pyplot as plt 
 
-
-if __name__ == '__main__': 
+def MPC_solve():
+    """ 
+    solve with pyomo
+    return: feas, xOpt, uOpt 
+    """ 
     # Constants
     M = 1
     ROU = 1 
@@ -23,18 +26,17 @@ if __name__ == '__main__':
     GAMMA = 0.1
     L = 1
     J = 1/2*M*L**2  
+    K = GAMMA*ROU*A*g / (2*M)
 
     NX = 6  # number of states
     NU = 2  # number of inputs 
     DT = 0.1 # time interval 
-    N = 100 # number of total intervals 
+    N = 150 # number of total intervals 
     TFinal = DT * N  # total time 
     INITIAL_STATE = [2.0, 2.0, 0,0,0,0]
     DESIRED_STATE = [8.0, 2.0, 0,0,0,0]
     FMAX = 100  # the max force that engine can provide 
     DELTAMAX = 0.1
-
-    # solve with pyomo 
     m = pyo.ConcreteModel()  # pyomo model
     m.tidx = pyo.Set( initialize= range(0,N+1))  # time index 
     m.xidx = pyo.Set( initialize= range(0, NX))  # state index 
@@ -45,7 +47,7 @@ if __name__ == '__main__':
 
     # cost function 
     m.cost = pyo.Objective(
-        expr = sum((m.x[i,N] - DESIRED_STATE[i])**2 for i in m.xidx), 
+        expr = sum((m.x[i,t] - DESIRED_STATE[i])**2 for i in m.xidx for t in range(N-10,N)), 
         sense = pyo.minimize 
     )  
     # initial state constraints 
@@ -99,23 +101,23 @@ if __name__ == '__main__':
         rule = lambda m, t: m.x[2,t+1] == m.x[2,t] + DT*m.x[5,t]
         if t < N else pyo.Constraint.Skip
     )
-    # xdot += DT*(F*sin(delta-theta) /M - GAMMA*ROU*A*g/(2*m)*xdot)
+    # xdot += DT*(F*sin(delta-theta) /M - K*xdot **2)
     m.dyn_cons4 = pyo.Constraint(
         m.tidx,
         rule = lambda m, t: m.x[3,t+1] == m.x[3,t] + DT*(
-            m.u[0,t]*pyo.sin(m.u[1,t] - m.x[2,t]) / M 
+            m.u[0,t]*pyo.sin(m.u[1,t] - m.x[2,t]) / M - K*m.x[3,t]**2
         )
         if t < N else pyo.Constraint.Skip
     )
-    # ydot += F*cos(delta-theta) /m - g -GAMMA*ROU*A*g/(2*m)*ydot
+    # ydot += DT*(F*cos(delta-theta) /m - g -K*ydot**2)
     m.dyn_cons5 = pyo.Constraint(
         m.tidx,
         rule = lambda m, t: m.x[4,t+1] == m.x[4,t] + DT*(
-            m.u[0,t]*pyo.cos(m.u[1,t] - m.x[2,t]) / M -g
+            m.u[0,t]*pyo.cos(m.u[1,t] - m.x[2,t]) / M -g - K*m.x[4,t]**2
         )
         if t < N else pyo.Constraint.Skip
     )
-    # thetadot += -F*L*sin(delta) /(2*J)
+    # thetadot += DT*(-F*L*sin(delta) /(2*J))
     m.dyn_cons6 = pyo.Constraint(
         m.tidx,
         rule = lambda m, t: m.x[5,t+1] == m.x[5,t] + DT*(
@@ -123,18 +125,24 @@ if __name__ == '__main__':
         )
         if t < N else pyo.Constraint.Skip
     )
-
+    # solve for results 
     results = pyo.SolverFactory('ipopt').solve(m)
     if str(results.solver.termination_condition) == "optimal":
         feas = True
-        print('Solution done! ')
+        print('Solution done!')
     else:
         feas = False
+        print('Solution infeasible')
     xOpt = np.asarray([[m.x[i,t]() for t in m.tidx] for i in m.xidx])
     uOpt = np.asarray([[m.u[i,t]() for t in m.tidx] for i in m.uidx])
-    x_pos = xOpt[0]
-    y_pos = xOpt[1]
+    return feas, xOpt, uOpt
 
+
+if __name__ == '__main__': 
+
+    feas, xOpt, uOpt = MPC_solve() 
+
+    # plot
     plt.figure()
     plt.subplot(2,2,1)
     plt.plot(xOpt[2])
@@ -157,6 +165,9 @@ if __name__ == '__main__':
     plt.plot(uOpt[1])
     plt.ylabel('Delta')
 
+
+    x_pos = xOpt[0]
+    y_pos = xOpt[1]
     plt.figure() 
     plt.plot(2,2,'r*')
     plt.plot(x_pos,y_pos,'g-.')

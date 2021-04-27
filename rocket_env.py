@@ -8,8 +8,8 @@ from matplotlib import pyplot as plt
 import numpy as np 
 from matplotlib import patches as mpatches
 from cmath import pi, sin, cos
+from MPCsolution import MPC_solve 
 
-DT = 0.01  # the fresh time 
 
 class RocketPlt():
     """ Rocket class  """
@@ -20,8 +20,7 @@ class RocketPlt():
         self.body_angle = 0  # the angle of the body 
         self.wing_angle = 0 # the angle of the wing
         self.position = np.array([2,2])
-        self.main_engine_on = False 
-        self.full_engine_on = False
+        self.engine_force = 0 
         self.visited = []  # list of visited positions 
 
     def render_rocket(self):
@@ -41,15 +40,9 @@ class RocketPlt():
         plt.plot(wing_line_x, wing_line_y, c = 'green',linewidth = 2)
 
         # draw engine fires 
-        if self.full_engine_on:
-            fire_length = 0.3 
-            fire_width = 8
-        elif self.main_engine_on:
-            fire_length = 0.2
-            fire_width = 5
-        else: 
-            fire_length = 0 
-            fire_width = 0 
+        engine_level = self.engine_force // 10 
+        fire_length = 0.1 * engine_level
+        fire_width = 2 * engine_level
 
         fire_point_x = self.position[0] - fire_length * sin(self.body_angle)
         fire_point_y = self.position[1] - fire_length * cos(self.body_angle)
@@ -78,27 +71,29 @@ def canvas_init():
     sea_pad = mpatches.Rectangle(sea_pad_point,2,0.2,color = 'g')
     ax.add_patch(sea_pad)
 
-    
 
 
-
-plt.ion()
-fig, ax = plt.subplots() 
-land_point = np.array([0.0, 0.0])  # the bottom left position of land
-sea_point = np.array([4.0, 0.0])   # the bottom left position of sea
-land_pad_point = np.array([2,1.8])
-sea_pad_point = np.array([7,1.8])
-rocket = RocketPlt()
-
-def simulation2D():
-    while True:
-        canvas_init()
-        # rocket.wing_angle += 0.1
-        # rocket.body_angle -= 0.1
-        # rocket.main_engine_on = True
-        rocket.render_rocket()
-        plt.pause(DT)
-        # plt.savefig('pic.jpg')
+def simulation2D(x,u):
+    canvas_init()
+    rocket.position = x[:2]
+    rocket.body_angle = x[3]
+    rocket.engine_force = u[0]
+    rocket.render_rocket()
+    plt.pause(DT)
+    # plt.savefig('pic.jpg')
 
 if __name__ == '__main__':
-    simulation2D()
+    DT = 0.1  # the fresh time 
+    plt.ion()
+    fig, ax = plt.subplots() 
+    land_point = np.array([0.0, 0.0])  # the bottom left position of land
+    sea_point = np.array([4.0, 0.0])   # the bottom left position of sea
+    land_pad_point = np.array([2,1.8])
+    sea_pad_point = np.array([7,1.8])
+    rocket = RocketPlt()
+
+    feas, xopt, uopt = MPC_solve() 
+
+    for t in range(150):
+        simulation2D(xopt[:,t], uopt[:,t])
+
