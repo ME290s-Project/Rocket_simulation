@@ -10,3 +10,7 @@
 
 # other MPC examples 
 see MPCexample folder
+
+# TODO:
+* try tuning and real environment 
+* waiting for reachability calculation
