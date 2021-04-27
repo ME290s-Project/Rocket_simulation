@@ -14,8 +14,8 @@ def disc_dyn(x,u,Ts, gamma, Tau, nx):
     x: state vector,
     u: input, 
     gamma, tau: parameter 
-    x_next1 = x1 + Ts(sin(x1) + gamma*arctan(x2))
-    x_next2 = x2 + Ts/ Tau*(x2 - u)
+    x1_next = x1 + Ts(sin(x1) + gamma*arctan(x2))
+    x2_next = x2 + Ts/ Tau*(x2 - u)
     """
     x_next = np.empty((nx,))
     x_next[0] = x[0] + Ts *(np.sin(x[0]) + gamma *np.arctan(x[1]))

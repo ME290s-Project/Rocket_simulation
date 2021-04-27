@@ -1,6 +1,6 @@
 '''
  # @ Author: Zion Deng
- # @ Description: MPC method adopted from ME231 class
+ # @ Description: MPC method adopted from ME231 class, but for linear problem
  '''
 
 import numpy as np
