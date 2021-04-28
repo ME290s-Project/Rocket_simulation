@@ -19,23 +19,23 @@ def MPC_solve():
     return: feas, xOpt, uOpt 
     """ 
     # Constants
-    M = 1
-    ROU = 1 
-    A = 1 
-    g = 1
+    M = 5.5e5
+    ROU = 1.1
+    A = 100
+    g = 10
     GAMMA = 0.1
-    L = 1
+    L = 70
     J = 1/2*M*L**2  
     K = GAMMA*ROU*A*g / (2*M)
 
     NX = 6  # number of states
     NU = 2  # number of inputs 
-    DT = 0.1 # time interval 
-    N = 150 # number of total intervals 
+    DT = 1 # time interval 
+    N = 100 # number of total intervals 
     TFinal = DT * N  # total time 
-    INITIAL_STATE = [2.0, 2.0, 0,0,0,0]
-    DESIRED_STATE = [8.0, 2.0, 0,0,0,0]
-    FMAX = 100  # the max force that engine can provide 
+    INITIAL_STATE = [20000, 200, 0,0,0,0]
+    DESIRED_STATE = [80000, 200, 0,0,0,0]
+    FMAX = 7e7  # the max force that engine can provide 
     DELTAMAX = 0.1
     m = pyo.ConcreteModel()  # pyomo model
     m.tidx = pyo.Set( initialize= range(0,N+1))  # time index 
@@ -101,19 +101,19 @@ def MPC_solve():
         rule = lambda m, t: m.x[2,t+1] == m.x[2,t] + DT*m.x[5,t]
         if t < N else pyo.Constraint.Skip
     )
-    # xdot += DT*(F*sin(delta-theta) /M - K*xdot **2)
+    # xdot += DT*(F*sin(delta+theta) /M - K*xdot **2)
     m.dyn_cons4 = pyo.Constraint(
         m.tidx,
         rule = lambda m, t: m.x[3,t+1] == m.x[3,t] + DT*(
-            m.u[0,t]*pyo.sin(m.u[1,t] - m.x[2,t]) / M - K*m.x[3,t]**2
+            m.u[0,t]*pyo.sin(m.u[1,t] + m.x[2,t]) / M - K*m.x[3,t]**2
         )
         if t < N else pyo.Constraint.Skip
     )
-    # ydot += DT*(F*cos(delta-theta) /m - g -K*ydot**2)
+    # ydot += DT*(F*cos(delta+theta) /m - g -K*ydot**2)
     m.dyn_cons5 = pyo.Constraint(
         m.tidx,
         rule = lambda m, t: m.x[4,t+1] == m.x[4,t] + DT*(
-            m.u[0,t]*pyo.cos(m.u[1,t] - m.x[2,t]) / M -g - K*m.x[4,t]**2
+            m.u[0,t]*pyo.cos(m.u[1,t] + m.x[2,t]) / M -g - K*m.x[4,t]**2
         )
         if t < N else pyo.Constraint.Skip
     )
@@ -169,7 +169,7 @@ if __name__ == '__main__':
     x_pos = xOpt[0]
     y_pos = xOpt[1]
     plt.figure() 
-    plt.plot(2,2,'r*')
+    plt.plot(20000,200,'r*')
     plt.plot(x_pos,y_pos,'g-.')
     plt.plot(x_pos[-1],y_pos[-1],'o')
     plt.show() 
