@@ -55,10 +55,10 @@ def MPC_solve():
         m.xidx, 
         rule = lambda m, i: m.x[i,0] == INITIAL_STATE[i]
     )  
-    # y > 2 
+    # y > 200
     m.height_cons = pyo.Constraint(
         m.tidx,
-        rule = lambda m, t: -m.x[1,t] <= -2.0 
+        rule = lambda m, t: -m.x[1,t] <= 0
         if t < N else pyo.Constraint.Skip
     )
     # 0<F<FMAX
