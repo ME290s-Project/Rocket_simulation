@@ -13,7 +13,6 @@ import torch.nn.functional as F
 import numpy as np  
 import matplotlib.pyplot as plt 
 from RL_rocket_env import RocketEnv
-from numpy import average
 # from Testing import realtime_search
 import time 
 
@@ -28,8 +27,8 @@ GAMMA = 0.99               # reward discount, the larger, the longer sight.
 TARGET_REPLACE_ITER = 50   # target update frequency
 MEMORY_CAPACITY = 100
 
-N_ACTIONS = 6
-N_STATES = 3
+N_ACTIONS = 9
+N_STATES = 4
 ENV_A_SHAPE = 0
 DESIRED_ACCURACY = 0.3   # the desired accuracy of training results
 
@@ -131,13 +130,13 @@ def train():
                 events[info-1] += 1 
                 # plt.cla() 
                 # env.show_plot() 
-                # plt.pause(0.001)
+                # plt.pause(0.1)
                 break 
 
         if i % N_SHOWN == 0:  # show the results in N_shown episode
             episode_events = events - events_history
             events_history = events.copy()
-            accuracy = episode_events[0] / sum(episode_events)
+            accuracy = (episode_events[0] + episode_events[3]) / sum(episode_events)
             print('\n Results: Reached: {0} Boundary: {1}, Crashed: {2}, Unsafe: {3}'.format(
                 episode_events[0], episode_events[1], episode_events[2], episode_events[3]))
             print('ACCURACY: {0}\n'.format(accuracy))

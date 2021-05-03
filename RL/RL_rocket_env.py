@@ -9,12 +9,14 @@ from Rocket import Rocket
 class RocketEnv(): 
     def __init__(self):
         self.rocket = Rocket() 
-        self.REWARD_REACH = 100
-        self.REWARD_BOUND = -10
-        self.REWARD_CRASH = -10
-        self.REWARD_UNSAFE = 10
-        self.BOUNDS = [100000,40000]  # tune according to the environment
-        self.SAFE_REGION = [55000,65000,0,10000,0.2]
+        self.REWARD_REACH = 10
+        self.REWARD_BOUND = -1
+        self.REWARD_CRASH = -1
+        self.REWARD_UNSAFE = 1
+        self.BOUNDS = [1000,1000]  # tune according to the environment
+        self.SAFE_REGION = [400,600,0,100,0.1]
+        self.SAFE_V = 40
+
 
 
     def reset(self):
@@ -36,42 +38,42 @@ class RocketEnv():
         reward = 0 
         info = 0 
         done = False
-        if 0<= action <=5:
-            x, y, theta = self.rocket.react(action)
-        else:
+        if 0<= action <=8:
+            x, y, theta, v = self.rocket.react(action)
+        else: 
             raise ValueError('ACTION WRONG')
         
         if self.check_reach() == True: 
             done = True 
             reward = self.REWARD_REACH
             info = 1 
-            return [x,y,theta], reward, done, info
+            return [x,y,theta,v], reward, done, info
         
         if self.check_boundary() == True:
             done = True
-            # print('Boundary hit')
             reward = self.REWARD_BOUND
             info = 2
-            return [x,y,theta], reward, done, info
+            return [x,y,theta,v], reward, done, info
 
         if self.check_crash() == True:
             done = True
-            # print('Crashed into Obstacle')
             reward = self.REWARD_CRASH
             info = 3
-            return [x,y,theta], reward, done, info 
+            return [x,y,theta,v], reward, done, info 
 
         if self.check_unsafe() == True:
             done = True 
             reward = self.REWARD_UNSAFE
             info = 4 
-            return [x,y,theta], reward, done, info
-        return [x,y,theta], reward, done, info
+            return [x,y,theta,v], reward, done, info
+        return [x,y,theta,v], reward, done, info
 
     def check_reach(self):
         """ check if the rocket lands safely """
         [xmin, xmax, ymin, ymax, delta] = self.SAFE_REGION
-        if (xmin < self.rocket.x < xmax) and (ymin < self.rocket.y) < ymax and (-delta< self.rocket.theta < delta):
+        x,y,theta,v = self.rocket.get_state()
+        if (xmin < x < xmax) and (ymin < y < ymax) and (
+            (-delta< theta < delta) and (v < self.SAFE_V) ):
             return True 
         else:
             return False
@@ -94,8 +96,9 @@ class RocketEnv():
 
     def check_unsafe(self):
         [xmin, xmax, ymin, ymax, delta] = self.SAFE_REGION
-        if (xmin < self.rocket.x < xmax) and (ymin < self.rocket.y < ymax):
-            if not (-delta< self.rocket.theta < delta):
+        x,y,theta,v = self.rocket.get_state()
+        if (xmin < x < xmax) and (ymin < y < ymax):
+            if (not -delta< theta < delta) or (not v < self.SAFE_V):
                 return True 
         else: 
             return False

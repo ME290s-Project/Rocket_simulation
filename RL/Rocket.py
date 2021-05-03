@@ -3,7 +3,7 @@
  # @ Description: A rocket class for landing 
  '''
 import numpy as np  
-from numpy import sin, cos, pi 
+from numpy import sin, cos, pi, sqrt 
 import matplotlib.pyplot as plt 
 
 class Rocket(): 
@@ -21,9 +21,9 @@ class Rocket():
         self.WING_LENGTH = 10
         # self.wing_angle = 0 # the angle of the wing
         # 6 states below
-        self.x = 20000 
-        self.y = 200
-        self.theta = 0  # the angle of the body -> theta 
+        self.x = 500 
+        self.y = 800
+        self.theta = np.random.uniform(-0.1,0.1)  # the angle of the body -> theta 
         self.x_dot=  0 
         self.y_dot= 0 
         self.theta_dot= 0 
@@ -49,17 +49,19 @@ class Rocket():
         L = 70
         J = 1/2*M*L**2  
         K = GAMMA*ROU*A*g / (2*M)
-        fire_reaction = action % 2  # 0: accelerate, 1: decelerate
-        angle_reaction = action // 2  # 0: no turning, 1: turn left, 2: turn right
-        if fire_reaction ==0: 
-            self.engine_force += 1e7 if self.engine_force < 7e7 else 0 
-        else:
-            self.engine_force -= 1e7 if self.engine_force > 0 else 0 
+        fire_reaction = action % 3  # 0: maintain, 1: accelerate, 2: decelerate 
+        angle_reaction = action // 3  # 0: no turning, 1: turn left, 2: turn right
+        if fire_reaction == 0: 
+            self.engine_force += 2e6 if self.engine_force < 1e7 else 0 
+        elif fire_reaction == 1:
+            self.engine_force -= 2e6 if self.engine_force > 0 else 0 
+        else: 
+            self.engine_force += 0 
         
         if angle_reaction == 1:
-            self.force_angle = 0.05 
+            self.force_angle = 0.03 
         elif angle_reaction == 2: 
-            self.force_angle = -0.05 
+            self.force_angle = -0.03 
         else: 
             self.force_angle = 0
         # dynamic calculation 
@@ -84,8 +86,7 @@ class Rocket():
         return self.get_state()
 
     def get_state(self):
-        return [self.x, self.y, self.theta]
-
+        return [self.x, self.y, self.theta,sqrt(self.x_dot**2+self.y_dot**2)]
 
 
 
