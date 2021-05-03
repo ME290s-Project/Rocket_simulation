@@ -88,9 +88,4 @@ class Rocket():
 
 
 
-if __name__ == "__main__":
-    for i in range(6):
-        print('accelerate', i%2, 'turn', i//2)
-
-
 

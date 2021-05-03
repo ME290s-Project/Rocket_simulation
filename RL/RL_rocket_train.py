@@ -129,9 +129,9 @@ def train():
             if done: # info 1 means reached the goal 
                 print('\rTraining Episode now: %d, Event Number is: %d' %(i,info), end = '')
                 events[info-1] += 1 
-                plt.cla() 
-                env.show_plot() 
-                plt.pause(0.001)
+                # plt.cla() 
+                # env.show_plot() 
+                # plt.pause(0.001)
                 break 
 
         if i % N_SHOWN == 0:  # show the results in N_shown episode
