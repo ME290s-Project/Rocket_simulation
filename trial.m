@@ -124,7 +124,7 @@ HJIextraArgs.visualize.deleteLastPlot = true; % delete previous plot as you upda
 if compTraj
 
     % set initial state 
-    xinit = [2,2,0];
+    xinit = [1,1,-pi];
     figure(1);
     clf
     h = visSetIm(g,data(:,:,:,end));
