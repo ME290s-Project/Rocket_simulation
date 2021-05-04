@@ -1,15 +1,16 @@
 
 %{
-  dynamics for Lander
-  x' = v* cos(theta) + dx 
-  y' = v* sin(theta) + dy 
-  theta' = w + dtheta
+  Dynamics for Lander: 
+  x' = v (0 first)
+  y' = y'
+  y'' = -g + N / M * F 
 
   control: 
-  u = w 
+  F, (v)
 %}
 
 function dx = dynamics(obj, ~, x,u,d)
+  % d: initial state 
   if nargin < 5
     d = [0; 0; 0];
   end 
@@ -24,9 +25,9 @@ function dx = dynamics(obj, ~, x,u,d)
   else
     % system dynamics here
     dx = zeros(obj.nx, 1);
-    dx(1) = obj.speed * cos(x(3)) +d(1);
-    dx(2) = obj.speed * sin(x(3)) +d(2);
-    dx(3) = u + d(3);
+    dx(1) = 0 +d(1);
+    dx(2) = x(3) +d(2);
+    dx(3) = u / 5 + d(3);
   end
 end 
 
@@ -34,11 +35,11 @@ end
 function dx = dynamics_cell_helper(obj,x,u,d, dims,dim)
   switch dim 
     case 1
-      dx = obj.speed * cos(x{dims ==3}) + d{1};
+      dx = 0 + d{1};
     case 2 
-      dx = obj.speed * sin(x{dims ==3}) + d{2}; 
+      dx = x{dims ==3} + d{2}; 
     case 3
-      dx = u + d{3};
+      dx = u/ .5 + d{3} -10;
     otherwise
       error('Dimension wrong')
   end 

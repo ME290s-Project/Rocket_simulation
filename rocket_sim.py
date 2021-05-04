@@ -100,7 +100,7 @@ def simulation2D(x,u):
     # plt.savefig('pic.jpg')
 
 if __name__ == '__main__':
-    DT = 0.2  # the fresh time 
+    DT = 0.1  # the fresh time 
     plt.ion()
     fig, ax = plt.subplots() 
     land_point = np.array([0.0, 0.0])  # the bottom left position of land
@@ -121,6 +121,6 @@ if __name__ == '__main__':
         plt.pause(DT)
     plt.autoscale(True)
     plt.show()
-    plt.pause(1)
+    plt.pause(10)
 
 

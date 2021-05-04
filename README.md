@@ -17,6 +17,9 @@
 * other related files are in @Lander folder 
 * More details, please see https://hjreachability.github.io/beacls/
 
+# Using CORA and AROC 
+* See test folder 
+
 # other MPC examples 
 see MPCexample folder
 
