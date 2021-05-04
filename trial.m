@@ -51,8 +51,8 @@ HJIextraArgs.visualize.deleteLastPlot = true; % delete previous plot as you upda
 HJIextraArgs.addGaussianNoiseStandardDeviation = [0.1; 0; 0.5];
 
 % uncomment if you want to see a 2D slice
-% HJIextraArgs.visualize.plotData.plotDims = [1 1 0]; %plot x, y
-% HJIextraArgs.visualize.plotData.projpt = [0]; %project at theta = 0
-% HJIextraArgs.visualize.viewAngle = [0,90]; % view 2D
+HJIextraArgs.visualize.plotData.plotDims = [1 1 0]; %plot x, y
+HJIextraArgs.visualize.plotData.projpt = [0]; %project at theta = 0
+HJIextraArgs.visualize.viewAngle = [0,90]; % view 2D
 
 [data, tau2, extraOuts] = HJIPDE_solve(data0, tau, schemeData, 'none',HJIextraArgs);

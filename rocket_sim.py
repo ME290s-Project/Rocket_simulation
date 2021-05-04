@@ -7,7 +7,7 @@
 from matplotlib import pyplot as plt
 import numpy as np 
 from matplotlib import patches as mpatches
-from cmath import pi, sin, cos
+from numpy import pi, sin, cos
 from MPCsolution import MPC_solve 
 
 
@@ -40,18 +40,19 @@ class RocketPlt():
         plt.plot(wing_line_x, wing_line_y, c = 'green',linewidth = 2)
 
         # draw engine fires 
-        engine_level = self.engine_force // 21e7
-        fire_length = 10 * engine_level
-        fire_width = engine_level // 2
+        engine_level = self.engine_force // 1e7
+        fire_length = 7 * engine_level
+        fire_width = engine_level
         fire_angle = self.body_angle + self.force_angle
 
         fire_point_x = self.position[0] - fire_length * sin(fire_angle)
         fire_point_y = self.position[1] - fire_length * cos(fire_angle)
         fire_line_x = [self.position[0],fire_point_x]
         fire_line_y = [self.position[1],fire_point_y]
+        plt.plot(fire_line_x, fire_line_y, c = 'red', linewidth = fire_width)
+
         self.history.append(np.array([self.position[0], self.position[1],top_point_x, top_point_y,
                             fire_point_x, fire_point_y, fire_angle, fire_width]))
-        plt.plot(fire_line_x, fire_line_y, c = 'red', linewidth = fire_width)
         
 
 def canvas_init():
@@ -121,6 +122,6 @@ if __name__ == '__main__':
         plt.pause(DT)
     plt.autoscale(True)
     plt.show()
-    plt.pause(10)
+    plt.pause(1)
 
 

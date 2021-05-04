@@ -1,0 +1,18 @@
+\begin{equation}
+    \begin{aligned}
+    \min_{x_{N-10}\dots x_N} & (x^T - x_{desired}) * I * (x - x_{desired}) \\
+    \text{s.t.} 
+    & \quad x_0 = x_{initial} \\
+    & \quad 0 < y_k < y_{max} \quad \forall k=0\dots N-1\\
+    & \quad 0 < F_k < F_{max} \quad \forall k=0\dots N-1\\ 
+    & \quad -\delta_{min} < \delta_k < \delta_{max} \quad \forall k=0\dots N-1\\ 
+    & \quad x_{k+1} = x_k + dt * \dot{x_k} \quad \forall k=0\dots N-1\\
+    & \quad y_{k+1} = y_k + dt * \dot{y_k} \quad \forall k=0\dots N-1\\
+    & \quad \theta_{k+1} = \theta_k + dt * \dot{\theta_k} \quad \forall k=0\dots N-1\\
+    & \quad \dot{x}_{k+1} = \dot{x}_k + dt * (F*sin(\delta_k + \theta_k) /M - K* \dot{x}_k^2) \quad \forall k=0\dots N-1 \\
+    & \quad \dot{y}_{k+1} = \dot{y}_k + dt * (F*cos(\delta_k + \theta_k) /M - K* \dot{y}_k^2) \quad \forall k=0\dots N-1 \\
+    & \quad \dot{\theta}_{k+1} = \dot{\theta}_k + dt * (-F * L*sin(\delta_k) / (2*J)) \quad \forall k=0\dots N-1 \\
+
+    \end{aligned}
+\end{equation}
+    

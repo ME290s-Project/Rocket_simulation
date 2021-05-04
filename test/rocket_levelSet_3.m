@@ -21,9 +21,10 @@ function HA = rocket_levelSet_3()
 % Last revision:---
 
 %------------- BEGIN CODE --------------
-% g=9.81;
-% ref=[ 86429.8641152348          114856.549165714          66.5598576030847          889.260095894018          571.431601200797         0.450190824059577          326956.521739155];
-% benchmark=(ref(7)*g*ref(2)+0.5*ref(7)*(ref(4)^2+ref(5)^2)/ref(7))*0.8;
+g=9.81;
+ref=[ 86429.8641152348          114856.549165714          66.5598576030847          889.260095894018          571.431601200797         0.450190824059577          326956.521739155];
+benchmark=(ref(7)*g*ref(2)+0.5*ref(7)*(ref(4)^2+ref(5)^2)/ref(7))*0.1;
+KL=1e5;
 % Mode Approaching --------------------------------------------------------
 
 %       x'  = vx 
@@ -36,15 +37,16 @@ dynamics1 = nonlinearSys(@dynamics_FT,7,2);
 
 % invariant:  x^2 + y^2 >= 100^2
 syms x y theta vx vy d_theta m;
-inv = levelSet(y - 1e5,[x;y;theta;vx;vy; d_theta; m],'<='); 
+inv = levelSet(y - KL,[x;y;theta;vx;vy; d_theta; m],'<='); 
 % inv = levelSet(g*y+0.5*(vx^2+vy^2)-benchmark,[x;y;theta;vx;vy; d_theta; m],'<='); 
 % transition: x^2 + y^2 == 100^2
 resetA = eye(7);
 resetA(6,6)=0;
 resetb = zeros(7,1);
+resetb(7)=-96570;
 reset1 = struct('A', resetA, 'b', resetb);
 
-guard1 = levelSet(y - 1e5,[x;y;theta;vx;vy; d_theta; m],'==');
+guard1 = levelSet(y - KL,[x;y;theta;vx;vy; d_theta; m],'==');
 
 trans{1} = transition(guard1, reset1, 2);
 
@@ -64,7 +66,7 @@ dynamics2 = nonlinearSys(@dynamic_glide,7,2);
 
 % invariant: x^2 + y^2 < 100^2
 syms x y theta vx vy d_theta m;
-inv = levelSet(-y+1e5 ,[x;y;theta;vx;vy; d_theta; m],'<='); 
+inv = levelSet(-y+KL ,[x;y;theta;vx;vy; d_theta; m],'<='); 
 
 % location
 
@@ -75,21 +77,38 @@ resetA(3,3)=-1;
 resetb = zeros(7,1);
 reset2 = struct('A', resetA, 'b', resetb);
 
-guard2 = levelSet(y - 1e5,[x;y;theta;vx;vy; d_theta; m],'==');
+% guard2 = levelSet(y-9e4,[x;y;theta;vx;vy; d_theta; m],'==');
+% guard2 = levelSet(9.81*y+0.5*(vx^2+vy^2)-benchmark,[x;y;theta;vx;vy; d_theta; m],'==');
+guard2 = levelSet(y-0.95*KL,[x;y;theta;vx;vy; d_theta; m],'==');
+trans2{1} = transition(guard2, reset2, 3);
+loc{2} = location('S2', inv, trans2, dynamics2);
 
 
-trans{2} = transition(guard2, reset2, 3);
-loc{2} = location('S2', inv, trans, dynamics2);
-
-
-% 3T phase
-dynamics3 = nonlinearSys(@dynamic_3T,7,2); 
+% reentry phase
+dynamics3 = nonlinearSys(@dynamic_reentry,7,2); 
 syms x y theta vx vy d_theta m;
 inv = levelSet(-y+2e4,[x;y;theta;vx;vy; d_theta; m],'<='); 
 % Hybrid Automaton --------------------------------------------------------
-trans = {};
-loc{3} = location('S3', inv, trans, dynamics3);
+resetA = eye(7);
+resetA(6,6)=0;
+resetb = zeros(7,1);
+reset3 = struct('A', resetA, 'b', resetb);
+guard3 = levelSet(y-2e4,[x;y;theta;vx;vy; d_theta; m],'==');
+trans3{1} = transition(guard3, reset3, 4);
+loc{3} = location('S3', inv, trans3, dynamics3);
+
+
+
+% 3T phase
+dynamics4 = nonlinearSys(@dynamic_3T,7,2); 
+syms x y theta vx vy d_theta m;
+inv = levelSet(y-2e4,[x;y;theta;vx;vy; d_theta; m],'<='); 
+% Hybrid Automaton --------------------------------------------------------
+trans4 = {};
+loc{4} = location('S4', inv, trans4, dynamics4);
 HA = hybridAutomaton(loc);
+
+
 
 
 end

@@ -125,6 +125,8 @@ def MPC_solve():
         )
         if t < N else pyo.Constraint.Skip
     )
+    # mdot += -DT*(F/ST)
+    
     # solve for results 
     results = pyo.SolverFactory('ipopt').solve(m)
     if str(results.solver.termination_condition) == "optimal":
@@ -141,9 +143,18 @@ def MPC_solve():
 if __name__ == '__main__': 
 
     feas, xOpt, uOpt = MPC_solve() 
-
     # plot
+    plt.figure() 
+    plt.grid()
+    x_pos = xOpt[0]
+    y_pos = xOpt[1]
+    plt.plot(20000,200,'r*')
+    plt.plot(x_pos,y_pos,'g-.')
+    plt.plot(x_pos[-1],y_pos[-1],'o')
+    plt.title('Trajectory')
+
     plt.figure()
+    plt.title('State Figure')
     plt.subplot(2,2,1)
     plt.plot(xOpt[2])
     plt.ylabel('theta')
@@ -158,6 +169,7 @@ if __name__ == '__main__':
     plt.ylabel('theta_dot')
 
     plt.figure() 
+    plt.title('Input Figure')
     plt.subplot(2,1,1)
     plt.plot(uOpt[0])
     plt.ylabel('Force')
@@ -165,11 +177,5 @@ if __name__ == '__main__':
     plt.plot(uOpt[1])
     plt.ylabel('Delta')
 
-
-    x_pos = xOpt[0]
-    y_pos = xOpt[1]
-    plt.figure() 
-    plt.plot(20000,200,'r*')
-    plt.plot(x_pos,y_pos,'g-.')
-    plt.plot(x_pos[-1],y_pos[-1],'o')
     plt.show() 
+

@@ -17,8 +17,8 @@ from RL_rocket_env import RocketEnv
 import time 
 
 # Hyper Parameters
-N_EPISODES = 300000            # Number of total episodes
-N_SHOWN = 50  # show results for N steps
+N_EPISODES = 200            # Number of total episodes
+N_SHOWN = 20  # show results for N steps
 
 BATCH_SIZE = 32
 LR = 0.01                   # learning rate
