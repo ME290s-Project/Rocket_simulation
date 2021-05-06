@@ -40,7 +40,8 @@ def MPC_solve():
     NU = 1  # number of inputs 
     DT = 1 # time interval 
     N = 130 # number of total intervals 
-    INITIAL_STATE = [106429, 114856,  66,  889, 571, 0.45, 326956]
+    INITIAL_STATE = [106429, 114856, 1.15,  889, 571, 0.45, 326956]
+    DESIRED_STATE = [200000, 100000, 1.15, 800, -700, 0.2, 326956]
 
     FMAX = 1.1  # the max force that engine can provide 
     DELTAMAX = 0.1
@@ -51,10 +52,10 @@ def MPC_solve():
 
     m.x = pyo.Var(m.xidx, m.tidx)  # model x[i,t]
     m.u = pyo.Var(m.uidx, m.tidx)  # model u[i,t]
-
+    
     # cost function 
     m.cost = pyo.Objective(
-        expr = sum((m.x[2,t] - 100000)for t in range(N-1,N)), 
+        expr = sum((m.x[i,t] - DESIRED_STATE[i])**2 for i in m.xidx for t in range(N-10,N)), 
         sense = pyo.minimize 
     )  
     # initial state constraints 
@@ -114,16 +115,16 @@ def MPC_solve():
         )
         if t < N else pyo.Constraint.Skip
     )
-    # thetadot += DT*(-F*L*sin(delta) /(2*J))
+    # thetadot += 0
     m.dyn_cons6 = pyo.Constraint(
         m.tidx,
-        rule = lambda m, t: m.x[5,t+1] == 0
+        rule = lambda m, t: m.x[5,t+1] == m.x[5,t]
         if t < N else pyo.Constraint.Skip
     )
-    # mdot += -DT*(F/ST)
+    # mdot += 0
     m.dyn_cons7 = pyo.Constraint(
         m.tidx,
-        rule = lambda m, t: m.x[6,t+1] == 0
+        rule = lambda m, t: m.x[6,t+1] == m.x[6,t]
         if t < N else pyo.Constraint.Skip
     )
 
@@ -143,7 +144,7 @@ def MPC_solve():
 if __name__ == '__main__': 
 
     feas, xOpt, uOpt = MPC_solve() 
-    print([i[-1] for i in xOpt])
+    print([int(i[-1]) for i in xOpt])
     # plot
     plt.figure() 
     plt.grid()
@@ -168,15 +169,6 @@ if __name__ == '__main__':
     plt.subplot(2,2,4)
     plt.plot(xOpt[5])
     plt.ylabel('theta_dot')
-
-    # plt.figure() 
-    # plt.title('Input Figure')
-    # plt.subplot(2,1,1)
-    # plt.plot(uOpt[0])
-    # plt.ylabel('Force')
-    # plt.subplot(2,1,2)
-    # plt.plot(uOpt[1])
-    # plt.ylabel('Delta')
 
     plt.show() 
     

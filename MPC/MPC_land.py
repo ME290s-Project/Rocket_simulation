@@ -4,14 +4,25 @@
  Model description: 
  state: x, y, theta, xdot, ydot, thetadot 
  ctrl state: F, delta 
- xdotdot = F *sin(delta-theta) /m - GAMMA*ROU*A*g/(2*m)*xdot 
- ydotdot=  F*cos(delta-theta) /m - g -GAMMA*ROU*A*g/(2*m)*ydot
- thetadotdot = -F*L*sin(delta) /(2*J)
+    f(1,1) = x(4);
+
+    f(2,1) = x(5);
+
+    f(3,1) = x(6);
+
+    f(4,1) = (N*Fs*sind(x(3)-u(1))-rou*Ar*(x(4)^2)/2   -u(2)*(rou*Ag*(x(4)^2)/(2)))/x(7);
+
+    f(5,1) = (N*Fs*cosd(x(3)-u(1))-rou*Ar*(x(5)^2)/2    -u(2)*(rou*Ag*(x(5)^2)/(2)))/x(7)-g;
+
+    f(6,1) =-1000*N*Fs*0.5*sind(u(1))/((1/12)*x(7)*L^2);
+
+    f(7,1) =-N*Fs/ST;
  '''
 
 import numpy as np 
 import pyomo.environ as pyo 
 import matplotlib.pyplot as plt 
+from numpy import sin, cos
 
 def MPC_solve():
     """ 
@@ -28,14 +39,16 @@ def MPC_solve():
     J = 1/2*M*L**2  
     K = GAMMA*ROU*A*g / (2*M)
     ST = 46000
+    Fs=7.6e3
+    Ar=100
+    Ag=36
 
     NX = 7  # number of states
     NU = 2  # number of inputs 
     DT = 1 # time interval 
     N = 130 # number of total intervals 
-    TFinal = DT * N  # total time 
-    INITIAL_STATE = [20000, 200, 0,0,0,0,M]
-    DESIRED_STATE=  [106429, 114856, 1.15,  889, 571, 0.45, 326956.521739155]
+    INITIAL_STATE = [340000, 20000, 0.2, 200, -560, 0, 326956.0]
+    DESIRED_STATE=  [360000, 200, 0,  0,0,0, 3e5]
 
     FMAX = 7e7  # the max force that engine can provide 
     DELTAMAX = 0.1
@@ -103,27 +116,27 @@ def MPC_solve():
         rule = lambda m, t: m.x[2,t+1] == m.x[2,t] + DT*m.x[5,t]
         if t < N else pyo.Constraint.Skip
     )
-    # xdot += DT*(F*sin(delta+theta) /M - K*xdot **2)
+    # xdot += DT*((N*Fs*sind(x(3)-u(1))-rou*Ar*(x(4)^2)/2   -u(2)*(rou*Ag*(x(4)^2)/(2)))/x(7))
     m.dyn_cons4 = pyo.Constraint(
         m.tidx,
         rule = lambda m, t: m.x[3,t+1] == m.x[3,t] + DT*(
-            m.u[0,t]*pyo.sin(m.u[1,t] + m.x[2,t]) / M - K*m.x[3,t]**2
+            (3*Fs*pyo.sin(m.x[2,t] - m.u[0,t])-ROU*Ar*(m.x[3,t]**2)/2 -m.u[1,t]*(ROU*Ag*(m.x[3,t]**2)/(2)))/m.x[6,t]
         )
         if t < N else pyo.Constraint.Skip
     )
-    # ydot += DT*(F*cos(delta+theta) /m - g -K*ydot**2)
+    # ydot += DT*((N*Fs*cosd(x(3)-u(1))-rou*Ar*(x(5)^2)/2 -u(2)*(rou*Ag*(x(5)^2)/(2)))/x(7)-g)
     m.dyn_cons5 = pyo.Constraint(
         m.tidx,
         rule = lambda m, t: m.x[4,t+1] == m.x[4,t] + DT*(
-            m.u[0,t]*pyo.cos(m.u[1,t] + m.x[2,t]) / M -g - K*m.x[4,t]**2
+            (3*Fs*pyo.cos(m.x[2,t] - m.u[0,t])-ROU*Ar*(m.x[4,t]**2)/2 -m.u[1,t]*(ROU*Ag*(m.x[4,t]**2)/(2)))/m.x[6,t]-g
         )
         if t < N else pyo.Constraint.Skip
     )
-    # thetadot += DT*(-F*L*sin(delta) /(2*J))
+    # thetadot += DT*(-1000*N*Fs*0.5*sind(u(1))/((1/12)*x(7)*L^2))
     m.dyn_cons6 = pyo.Constraint(
         m.tidx,
         rule = lambda m, t: m.x[5,t+1] == m.x[5,t] + DT*(
-            -m.u[0, t]*L*pyo.sin(m.u[1,t]) / (2*J)
+            -1000*3*Fs*0.5*pyo.sin(m.u[0,t])/((1/12)*m.x[6,t]*L**2)
         )
         if t < N else pyo.Constraint.Skip
     )

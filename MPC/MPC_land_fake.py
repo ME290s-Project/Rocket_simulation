@@ -32,11 +32,10 @@ def MPC_solve():
     NX = 7  # number of states
     NU = 2  # number of inputs 
     DT = 1 # time interval 
-    N = 130 # number of total intervals 
+    N = 10 # number of total intervals 
     TFinal = DT * N  # total time 
-    INITIAL_STATE = [20000, 200, 0,0,0,0,M]
-    DESIRED_STATE=  [106429, 114856, 1.15,  889, 571, 0.45, 326956.521739155]
-
+    INITIAL_STATE = [340000, 20000, -0.2, 200, -460, 0, 326956.0]
+    DESIRED_STATE=  [350000, 200, 0,  0,0,0, 3e5]
     FMAX = 7e7  # the max force that engine can provide 
     DELTAMAX = 0.1
     m = pyo.ConcreteModel()  # pyomo model
