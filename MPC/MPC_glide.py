@@ -18,7 +18,7 @@ import numpy as np
 import pyomo.environ as pyo 
 import matplotlib.pyplot as plt 
 
-def MPC_solve():
+def MPC_glide():
     """ 
     solve with pyomo
     return: feas, xOpt, uOpt 
@@ -40,9 +40,9 @@ def MPC_solve():
     NU = 1  # number of inputs 
     DT = 1 # time interval 
     N = 130 # number of total intervals 
-    INITIAL_STATE = [106429, 114856, 1.15,  889, 571, 0.45, 326956]
-    DESIRED_STATE = [200000, 100000, 1.15, 800, -700, 0.2, 326956]
-
+    INITIAL_STATE = [89096, 116571, 1, 875, 535, 0, 354696]
+    DESIRED_STATE = [180000, 100000, 1.15, 800, -700, 0.2, 326956]
+    P = [1e-5, 1e-4,1,1e-2,1e-2,1, 1e-5]  # P matrix for terminal state cost 
     FMAX = 1.1  # the max force that engine can provide 
     DELTAMAX = 0.1
     m = pyo.ConcreteModel()  # pyomo model
@@ -55,7 +55,7 @@ def MPC_solve():
     
     # cost function 
     m.cost = pyo.Objective(
-        expr = sum((m.x[i,t] - DESIRED_STATE[i])**2 for i in m.xidx for t in range(N-10,N)), 
+        expr = sum((P[i] * (m.x[i,t] - DESIRED_STATE[i]))**2 for i in m.xidx for t in range(N-5,N)), 
         sense = pyo.minimize 
     )  
     # initial state constraints 
@@ -143,20 +143,23 @@ def MPC_solve():
 
 if __name__ == '__main__': 
 
-    feas, xOpt, uOpt = MPC_solve() 
+    feas, xOpt, uOpt = MPC_glide() 
     print([int(i[-1]) for i in xOpt])
     # plot
     plt.figure() 
     plt.grid()
     x_pos = xOpt[0]
     y_pos = xOpt[1]
-    plt.plot(20000,200,'r*')
+    plt.plot(0,200,'r*',label = 'start')
     plt.plot(x_pos,y_pos,'g-.')
-    plt.plot(x_pos[-1],y_pos[-1],'o')
-    plt.title('Trajectory')
+    plt.plot(x_pos[-1],y_pos[-1],'o',label = 'end')
+    plt.xlabel('time')
+    plt.ylabel('Height')
+    plt.legend() 
+    plt.title('Gliding Trajectory')
 
     plt.figure()
-    plt.title('State Figure')
+    plt.title('Gliding State')
     plt.subplot(2,2,1)
     plt.plot(xOpt[2])
     plt.ylabel('theta')
@@ -170,7 +173,15 @@ if __name__ == '__main__':
     plt.plot(xOpt[5])
     plt.ylabel('theta_dot')
 
+    plt.figure() 
+    plt.plot(uOpt[0])
+    plt.title('Gliding Input')
+    plt.ylabel('Wing angle')
+    plt.xlabel('Time')
+
     plt.show() 
+
+    
     
 
 

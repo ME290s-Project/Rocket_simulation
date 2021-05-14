@@ -18,7 +18,7 @@ import numpy as np
 import pyomo.environ as pyo 
 import matplotlib.pyplot as plt 
 
-def MPC_solve():
+def MPC_reen():
     """ 
     solve with pyomo
     return: feas, xOpt, uOpt 
@@ -39,10 +39,10 @@ def MPC_solve():
     NX = 7  # number of states
     NU = 1  # number of inputs 
     DT = 1 # time interval 
-    N = 80 # number of total intervals 
-    INITIAL_STATE = [220469, 105138, -0.3 , 865, -730, 0, 326956]  
-    DESIRED_STATE = [340000, 20000, 0.2, 200, -560, 0, 326956.0] 
-
+    N = 70 # number of total intervals 
+    INITIAL_STATE = [201364, 102181, -1, 852, -767, 0, 354696] 
+    DESIRED_STATE = [260000, 20000, -1, 200, -560, 0, 326956.0] 
+    P = [1e-5, 1e-4, 1, 1e-2, 1e-2, 1, 1e-5]  # P matrix for terminal state cost 
     FMAX = 1.1  # the max force that engine can provide 
     DELTAMAX = 0.1
     m = pyo.ConcreteModel()  # pyomo model
@@ -55,7 +55,7 @@ def MPC_solve():
 
     # cost function 
     m.cost = pyo.Objective(
-        expr = sum((m.x[i,t] - DESIRED_STATE[i])**2 for i in m.xidx for t in range(N-1,N)), 
+        expr = sum((P[i] * (m.x[i,t] - DESIRED_STATE[i]))**2 for i in m.xidx for t in range(N-5,N)), 
         sense = pyo.minimize 
     )  
     # initial state constraints 
@@ -143,20 +143,21 @@ def MPC_solve():
 
 if __name__ == '__main__': 
 
-    feas, xOpt, uOpt = MPC_solve() 
+    feas, xOpt, uOpt = MPC_reen() 
     print([int(i[-1]) for i in xOpt])
     # plot
     plt.figure() 
     plt.grid()
     x_pos = xOpt[0]
     y_pos = xOpt[1]
-    plt.plot(20000,200,'r*')
+    plt.plot(0,200,'r*',label = 'start')
     plt.plot(x_pos,y_pos,'g-.')
-    plt.plot(x_pos[-1],y_pos[-1],'o')
-    plt.title('Trajectory')
+    plt.plot(x_pos[-1],y_pos[-1],'o',label = 'end')
+    plt.legend()
+    plt.title('Re-entry Trajectory')
 
     plt.figure()
-    plt.title('State Figure')
+    plt.title('Re-entry State')
     plt.subplot(2,2,1)
     plt.plot(xOpt[2])
     plt.ylabel('theta')
@@ -170,6 +171,11 @@ if __name__ == '__main__':
     plt.plot(xOpt[5])
     plt.ylabel('theta_dot')
 
+    plt.figure() 
+    plt.plot(uOpt[0])
+    plt.title('Re-entry Input')
+    plt.ylabel('Wing angle')
+    plt.xlabel('Time')
     plt.show() 
     
 

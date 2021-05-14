@@ -1,0 +1,17 @@
+\begin{algorithm}[t!]
+    \caption{TFOPR simulation for all stages}
+    \begin{algorithmic}[1]
+    \label{alg:whip}
+    \REQUIRE Pre-computed reachable states$x_{des}$, MPC horizon $N$ at 3 stages, the launching point$x_{0}$, and the landing point$x_{T}$.
+    \STATE states = [], inputs =[]
+    \STATE initial = $x_{0}$ 
+    \STATE $x^*$ = [],$u^*$ = []
+    \FOR{$stage$ $\in \{'Full_thrust', 'gliding', 're_entry', 'landing'\}$}
+        \STATE $x^*$,$u^*$ = TFOPR_{stage}(initial)
+        \STATE initial \gets $x^*$
+    \STATE states.append($x^*$)
+    \STATE inputs.append($u^*$)
+    \ENDFOR
+    \RETURN states, inputs
+    \end{algorithmic}
+\end{algorithm}

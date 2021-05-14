@@ -1,0 +1,22 @@
+\begin{algorithm}[t!]
+    \caption{Finite time Optimizaing Path-following from Reachability(TFOPR)}
+    \begin{algorithmic}[1]
+    \label{alg:the_alg}
+    \REQUIRE Initial condition $x_{0}$; Pre-computed Feasible final state $x^*$; system model $f$; cost function $J$; MPC prediction horizon $N$,
+    
+    \STATE Initialize the ConcreteModel$m$ of Pyomo
+    \STATE Add states and inputs at length of N to model$m$ 
+    \STATE Define cost function$J$
+    \STATE Define initial state constraints based on the Initial condition$x_{0}$
+    \STATE Define physical constraints based on the engine properties and height 
+    \STATE Define dynamic constraints based on different state 
+    \STATE Run MPC with prediction horizon $N$ to minimize $J$
+    \STATE Use ipopt solver to solve for optimal results
+    \IF {INFEASIBLE}
+        \STATE Add slackness to input constraints, and increase weights of slack variables as defined in $Q(x,u)$ and solve again until feasible
+        \RETURN [], []
+    \ENDIF
+    \STATE $x_{opt} \gets x^{opt}_t$, $u_{opt} \gets u^{opt}_t$
+    \RETURN optimal path-following trajectory $x_{opt}, u_{opt}$ as $\tau^{return}$
+    \end{algorithmic}
+\end{algorithm}

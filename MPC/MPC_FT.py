@@ -13,7 +13,7 @@ import numpy as np
 import pyomo.environ as pyo 
 import matplotlib.pyplot as plt 
 
-def MPC_solve():
+def MPC_FT():
     """ 
     solve with pyomo
     return: feas, xOpt, uOpt 
@@ -33,10 +33,9 @@ def MPC_solve():
     NU = 2  # number of inputs 
     DT = 1 # time interval 
     N = 130 # number of total intervals 
-    TFinal = DT * N  # total time 
-    INITIAL_STATE = [20000, 200, 0,0,0,0,M]
-    DESIRED_STATE=  [106429, 114856, 1.15,  889, 571, 0.45, 326956.521739155]
-
+    INITIAL_STATE = [0, 200, 0,0,0,0,M]
+    DESIRED_STATE=  [86429, 114856, 1.15,  889, 571, 0.45, 326956]
+    P = [1e-5, 1e-4,1,1e-2,1e-2,1, 1e-5]  # P matrix for terminal state cost 
     FMAX = 7e7  # the max force that engine can provide 
     DELTAMAX = 0.1
     m = pyo.ConcreteModel()  # pyomo model
@@ -49,7 +48,7 @@ def MPC_solve():
 
     # cost function 
     m.cost = pyo.Objective(
-        expr = sum((m.x[i,t] - DESIRED_STATE[i])**2 for i in m.xidx for t in range(N-10,N)), 
+        expr = sum((P[i] * (m.x[i,t] - DESIRED_STATE[i]))**2 for i in m.xidx for t in range(N-5,N)), 
         sense = pyo.minimize 
     )  
     # initial state constraints 
@@ -151,19 +150,21 @@ def MPC_solve():
 
 if __name__ == '__main__': 
 
-    feas, xOpt, uOpt = MPC_solve() 
+    feas, xOpt, uOpt = MPC_FT() 
+    print([int(i[-1]) for i in xOpt])
     # plot
     plt.figure() 
     plt.grid()
     x_pos = xOpt[0]
     y_pos = xOpt[1]
-    plt.plot(20000,200,'r*')
+    plt.plot(0,200,'r*',label = 'start')
     plt.plot(x_pos,y_pos,'g-.')
-    plt.plot(x_pos[-1],y_pos[-1],'o')
-    plt.title('Trajectory')
+    plt.plot(x_pos[-1],y_pos[-1],'o',label = 'end')
+    plt.legend()
+    plt.title('Full Thrust Trajectory')
 
     plt.figure()
-    plt.title('State Figure')
+    plt.title('Full Thrust State')
     plt.subplot(2,2,1)
     plt.plot(xOpt[2])
     plt.ylabel('theta')
@@ -178,7 +179,7 @@ if __name__ == '__main__':
     plt.ylabel('theta_dot')
 
     plt.figure() 
-    plt.title('Input Figure')
+    plt.title('Full Thrust Input')
     plt.subplot(2,1,1)
     plt.plot(uOpt[0])
     plt.ylabel('Force')
